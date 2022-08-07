@@ -113,6 +113,15 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
+// ui
+
+const updateUI = function (acc) {
+  displayMovement(acc.movements);
+  calcDisplayBlance(acc);
+  calcin(acc);
+};
+
+/////
 const displayMovement = function (movements) {
   containerMovements.innerHTML = '';
   movements.forEach((mov, i) => {
@@ -127,14 +136,32 @@ const displayMovement = function (movements) {
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
 };
-displayMovement(account1.movements);
 
-const calcDisplayBlance = function (movements) {
-  const Blanace = movements.reduce((acc, mov) => acc + mov, 0);
-  console.log(Blanace);
-  labelBalance.textContent = `${Blanace} EUR`;
+const calcDisplayBlance = function (acc) {
+  acc.Blanace = acc.movements.reduce((acc, mov) => acc + mov, 0);
+  // console.log(Blanace);
+  labelBalance.textContent = `${acc.Blanace} EUR`;
 };
-calcDisplayBlance(account1.movements);
+
+const calcin = function (acc) {
+  const income = acc.movements
+    .filter(mov => mov > 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumIn.textContent = `${income}`;
+  const out = acc.movements
+    .filter(mov => mov < 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumOut.textContent = `${Math.abs(out)}`;
+  const intrest = acc.movements
+    .filter(mov => mov > 0)
+    .map(mov => (mov * acc.interestRate) / 100)
+    .filter((int, i, arr) => {
+      // console.log(arr);
+      return int >= 1;
+    })
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumInterest.textContent = intrest;
+};
 
 const userName = function (accs) {
   accs.forEach(acc => {
@@ -148,6 +175,69 @@ const userName = function (accs) {
 
 userName(accounts);
 
+// login
+let currentacc;
+btnLogin.addEventListener('click', function (e) {
+  e.preventDefault();
+  // console.log('login');
+  currentacc = accounts.find(acc => acc.userName === inputLoginUsername.value);
+  console.log(currentacc);
+  if (currentacc?.pin === Number(inputLoginPin.value)) {
+    labelWelcome.textContent = `welcomeback ${currentacc.owner.split(' ')[0]}`;
+    containerApp.style.opacity = 100;
+    updateUI(currentacc);
+    inputLoginUsername.value = inputLoginPin.value = '';
+    inputLoginPin.blur();
+  }
+});
+
+// transfer
+btnTransfer.addEventListener('click', function (e) {
+  e.preventDefault();
+  const amoutn = Number(inputTransferAmount.value);
+  const recieveacc = accounts.find(
+    acc => acc.userName === inputTransferTo.value
+  );
+  inputTransferTo.value = inputTransferAmount.value = '';
+  if (
+    amoutn > 0 &&
+    recieveacc &&
+    currentacc.Blanace > amoutn &&
+    recieveacc?.userName !== currentacc.userName
+  ) {
+    currentacc.movements.push(-amoutn);
+    recieveacc.movements.push(amoutn);
+    updateUI(currentacc);
+  }
+});
+// loan
+btnLoan.addEventListener('click', function (e) {
+  e.preventDefault();
+  const amount = Number(inputLoanAmount.value);
+  if (amount > 0 && currentacc.movements.some(mov => mov >= amount / 10)) {
+    currentacc.movements.push(amount);
+    updateUI(currentacc);
+  }
+});
+
+// closed
+
+btnClose.addEventListener('click', function (e) {
+  e.preventDefault();
+  if (
+    inputCloseUsername.value === currentacc.userName &&
+    Number(inputClosePin.value) === currentacc.pin
+  ) {
+    const index = accounts.findIndex(
+      acc => acc.userName === currentacc.userName
+    );
+    console.log(index);
+    accounts.splice(index, 1);
+    containerApp.style.opacity = 0;
+  }
+  inputCloseUsername.value = inputClosePin.value = '';
+  labelWelcome.textContent = 'Log in to get started';
+});
 // console.log(accounts);
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -258,14 +348,39 @@ const arr = ['a', 'b', 'c', 'd', 'e', 'f'];
 
 // console.log(typeof value);
 
-const calcHmanage = function (arr) {
-  const humanage = arr.map(arrs => (arrs <= 2 ? 2 * arrs : 16 + arrs * 4));
-  const adult = humanage.filter(arrs => arrs >= 18);
-  console.log(humanage);
-  console.log(adult);
-  const average = adult.reduce((acc, arrs) => (acc + arrs, 0));
+// const calcHmanage = function (arr) {
+//   const humanage = arr.map(arrs => (arrs <= 2 ? 2 * arrs : 16 + arrs * 4));
+//   const adult = humanage.filter(arrs => arrs >= 18);
+//   console.log(humanage);
+//   console.log(adult);
+//   // const average = adult.reduce((acc, a) => (acc + a, 0) / adult.length);
+//   // const average = adult.reduce((acc, age, i, arr) => acc + age / arr.length, 0);
+//   const average = adult.reduce((acc, age) => acc + age, 0) / adult.length;
 
-  console.log(average);
-};
+//   console.log(average);
+// };
 
-const val = calcHmanage([5, 2, 4, 1, 15, 8, 3]);
+// const val = calcHmanage([5, 2, 4, 1, 15, 8, 3]);
+
+// const eutousd = 1.1;
+
+// const totaleurodp = movements
+//   .filter(mov => mov > 0)
+//   .map(mov => mov * eutousd)
+//   .reduce((acc, mov) => acc + mov, 0);
+
+// console.log(totaleurodp);
+
+// const arrp = [2, 3, 4, 5, 5, 6, 6];
+
+// for (let i = 0; i < arrp.length; i++) {
+//   console.log(arrp[i]);
+// }
+// const accoutn = accounts.find(mov => mov.owner === 'Jessica Davis');
+// console.log(accoutn?.userName ? accoutn.userName : 'incorrect couutn');
+//include
+console.log(movements.includes(-130));
+//somem
+console.log(movements.some(acc => acc > 2000));
+//every
+console.log(account4.movements.every(acc => acc > 0));
