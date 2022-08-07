@@ -122,9 +122,11 @@ const updateUI = function (acc) {
 };
 
 /////
-const displayMovement = function (movements) {
+const displayMovement = function (movements, sort = false) {
   containerMovements.innerHTML = '';
-  movements.forEach((mov, i) => {
+
+  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+  movs.forEach((mov, i) => {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
     const html = ` <div class="movements">
     <div class="movements__row">
@@ -237,6 +239,12 @@ btnClose.addEventListener('click', function (e) {
   }
   inputCloseUsername.value = inputClosePin.value = '';
   labelWelcome.textContent = 'Log in to get started';
+});
+let ss = false;
+btnSort.addEventListener('click', function (e) {
+  e.preventDefault();
+  displayMovement(currentacc.movements, !ss);
+  ss = !ss;
 });
 // console.log(accounts);
 /////////////////////////////////////////////////
@@ -384,3 +392,29 @@ console.log(movements.includes(-130));
 console.log(movements.some(acc => acc > 2000));
 //every
 console.log(account4.movements.every(acc => acc > 0));
+//flat
+const accmonents = accounts.map(acc => acc.movements);
+const allmovents = accmonents.flat();
+console.log(allmovents);
+const overallb = allmovents.reduce((acc, mov) => acc + mov, 0);
+console.log(overallb);
+//flatmap
+const overbal = accounts
+  .flatMap(acc => acc.movements)
+  .reduce((acc, mov) => acc + mov, 0);
+console.log(overbal);
+// sortindg ascending
+// console.log(movements);
+movements.sort((a, b) => a - b);
+// movements.sort((a, b) => {
+//   if (a > b) return 1;
+//   if (a < b) return -1;
+// });
+console.log(movements);
+movements.sort((a, b) => b - a);
+// movements.sort((a, b) => {
+//   if (a > b) return -1;
+//   if (a < b) return 1;
+// });
+
+console.log(movements);
